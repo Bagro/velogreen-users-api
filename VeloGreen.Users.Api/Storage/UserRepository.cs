@@ -1,6 +1,4 @@
 using System;
-using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using VeloGreen.Users.Api.Entities;
@@ -42,7 +40,7 @@ namespace VeloGreen.Users.Api.Storage
 
         public async Task<User> GetByEmail(string email)
         {
-            return await _applicationDbContext.Users.SingleOrDefaultAsync(x => x.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+            return await _applicationDbContext.Users.SingleOrDefaultAsync(x => x.Email == email);
         }
 
         public Task<User> GetById(Guid id)

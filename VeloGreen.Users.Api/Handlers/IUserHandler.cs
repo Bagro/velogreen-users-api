@@ -6,5 +6,7 @@ namespace VeloGreen.Users.Api.Handlers
     public interface IUserHandler
     {
         Task Register(RegisterRequest registerRequest);
+
+        Task<string> Authenticate(AuthenticationRequest authenticationRequest);
     }
 }

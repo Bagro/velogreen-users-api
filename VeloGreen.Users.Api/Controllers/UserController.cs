@@ -25,5 +25,11 @@ namespace VeloGreen.Users.Api.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("authenticate")]
+        public async Task<IActionResult> Authenticate([FromBody] AuthenticationRequest authenticationRequest)
+        {
+            return Ok(await _userHandler.Authenticate(authenticationRequest));
+        }
     }
 }
