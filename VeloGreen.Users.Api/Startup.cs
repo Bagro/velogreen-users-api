@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using VeloGreen.Users.Api.Handlers;
 using VeloGreen.Users.Api.Storage;
 
 namespace VeloGreen.Users.Api
@@ -39,6 +40,9 @@ namespace VeloGreen.Users.Api
                 {
                     c.SwaggerDoc("v1", new OpenApiInfo { Title = "VeloGreen.Users.Api", Version = "v1" });
                 });
+
+            services.AddScoped<IUserHandler, UserHandler>();
+            services.AddScoped<IUserRepository, UserRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

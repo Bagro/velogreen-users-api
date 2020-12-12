@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using VeloGreen.Users.Api.Storage.Entities;
+using VeloGreen.Users.Api.Entities;
 
 namespace VeloGreen.Users.Api.Storage
 {
