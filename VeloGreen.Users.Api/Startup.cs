@@ -3,12 +3,14 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using VeloGreen.Users.Api.Entities.Settings;
 using VeloGreen.Users.Api.Handlers;
 using VeloGreen.Users.Api.Storage;
 
@@ -26,17 +28,18 @@ namespace VeloGreen.Users.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
-            });
-
-            services.AddAuthentication(
+            services.AddDbContext<ApplicationDbContext>(
                 options =>
                 {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
+                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+                });
+
+            services.AddAuthentication(
+                    options =>
+                    {
+                        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    })
                 .AddJwtBearer(
                     options =>
                     {
@@ -53,7 +56,7 @@ namespace VeloGreen.Users.Api
                             ValidateIssuerSigningKey = true
                         };
                     });
-            
+
             services.AddControllers();
             services.AddSwaggerGen(
                 c =>
@@ -61,6 +64,11 @@ namespace VeloGreen.Users.Api
                     c.SwaggerDoc("v1", new OpenApiInfo { Title = "VeloGreen.Users.Api", Version = "v1" });
                 });
 
+            services.AddHttpContextAccessor();
+
+            services.AddOptions<AuthenticationSettings>().BindConfiguration(nameof(AuthenticationSettings));
+
+            services.AddScoped<IAuthenticationHandler, AuthenticationHandler>();
             services.AddScoped<IUserHandler, UserHandler>();
             services.AddScoped<IUserRepository, UserRepository>();
         }

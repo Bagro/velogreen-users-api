@@ -36,12 +36,6 @@ namespace VeloGreen.Users.Api.Controllers
             return NoContent();
         }
 
-        [HttpPost("authenticate")]
-        public async Task<IActionResult> Authenticate([FromBody] AuthenticationRequest authenticationRequest)
-        {
-            return Ok(await _userHandler.Authenticate(authenticationRequest));
-        }
-        
         [HttpGet("{email}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetUserByEmail(string email)

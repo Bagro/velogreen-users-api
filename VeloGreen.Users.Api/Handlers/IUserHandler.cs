@@ -9,8 +9,6 @@ namespace VeloGreen.Users.Api.Handlers
 
         Task Update(UpdateUserRequest updateUserRequest);
         
-        Task<string> Authenticate(AuthenticationRequest authenticationRequest);
-        
         Task<User> GetUserByEmail(string email);
     }
 }

@@ -1,11 +1,14 @@
 using System;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
+using VeloGreen.Users.Api.Constants;
 using VeloGreen.Users.Api.Entities;
 using VeloGreen.Users.Api.Exceptions;
 using VeloGreen.Users.Api.Storage;
@@ -15,10 +18,12 @@ namespace VeloGreen.Users.Api.Handlers
     public class UserHandler : IUserHandler
     {
         private readonly IUserRepository _userRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserHandler(IUserRepository userRepository)
+        public UserHandler(IUserRepository userRepository, IHttpContextAccessor httpContextAccessor)
         {
             _userRepository = userRepository;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task Register(RegisterRequest registerRequest)
@@ -62,43 +67,20 @@ namespace VeloGreen.Users.Api.Handlers
             await _userRepository.Save(user);
         }
 
-        public async Task<string> Authenticate(AuthenticationRequest authenticationRequest)
+        public async Task<User> GetUserByEmail(string email)
         {
-            var user = await _userRepository.GetByEmail(authenticationRequest.Email);
-
-            if (user == null || !BCrypt.Net.BCrypt.Verify(authenticationRequest.Password, user.Password))
+            if (CanAccess(ClaimConstants.Email, email) || CanAccess(ClaimConstants.Admin, true.ToString()))
             {
-                throw new AuthenticationException();
+                return await _userRepository.GetByEmail(email);
             }
 
-            return GenerateJwtToken(user);
+            throw new UnauthorizedAccessException();
         }
 
-        public Task<User> GetUserByEmail(string email)
+        private bool CanAccess(string type, string value)
         {
-            return _userRepository.GetByEmail(email);
+            return _httpContextAccessor.HttpContext.User.Claims.Any(x => x.Type.Equals(type) && x.Value.Equals(value));
         }
-
-        private static string GenerateJwtToken(User user)
-        {
-            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Replace with key from settings that is long and 256"));
-            var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha384Signature);
-            var securityTokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                    new Claim("Admin", false.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddMonths(1),
-                SigningCredentials = signingCredentials,
-                Issuer = "https://velogreen.se",
-            };
-
-            var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-            var securityToken = jwtSecurityTokenHandler.CreateToken(securityTokenDescriptor);
-            return jwtSecurityTokenHandler.WriteToken(securityToken);
-        }
+        
     }
 }
