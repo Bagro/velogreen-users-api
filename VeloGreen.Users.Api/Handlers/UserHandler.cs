@@ -1,13 +1,8 @@
 using System;
 using System.Data;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Authentication;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Tokens;
 using VeloGreen.Users.Api.Constants;
 using VeloGreen.Users.Api.Entities;
 using VeloGreen.Users.Api.Exceptions;
