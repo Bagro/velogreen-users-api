@@ -29,6 +29,7 @@ namespace VeloGreen.Users.Api.Controllers
         }
 
         [HttpPut]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> Update([FromBody] UpdateUserRequest updateUserRequest)
         {
             await _userHandler.Update(updateUserRequest);

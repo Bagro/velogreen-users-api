@@ -1,13 +1,8 @@
 using System;
 using System.Data;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Authentication;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Tokens;
 using VeloGreen.Users.Api.Constants;
 using VeloGreen.Users.Api.Entities;
 using VeloGreen.Users.Api.Exceptions;
@@ -46,6 +41,11 @@ namespace VeloGreen.Users.Api.Handlers
 
         public async Task Update(UpdateUserRequest updateUserRequest)
         {
+            if (!CanAccess(ClaimConstants.NameIdentifier, updateUserRequest.Id.ToString()) && !CanAccess(ClaimConstants.Admin, true.ToString()))
+            {
+                throw new UnauthorizedAccessException();
+            }
+            
             var user = await _userRepository.GetById(updateUserRequest.Id);
 
             if (user == null)
@@ -79,7 +79,7 @@ namespace VeloGreen.Users.Api.Handlers
 
         private bool CanAccess(string type, string value)
         {
-            return _httpContextAccessor.HttpContext.User.Claims.Any(x => x.Type.Equals(type) && x.Value.Equals(value));
+            return _httpContextAccessor.HttpContext != null && _httpContextAccessor.HttpContext.User.Claims.Any(x => x.Type.Equals(type) && x.Value.Equals(value));
         }
         
     }
