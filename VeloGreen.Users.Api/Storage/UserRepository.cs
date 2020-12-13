@@ -40,12 +40,12 @@ namespace VeloGreen.Users.Api.Storage
 
         public async Task<User> GetByEmail(string email)
         {
-            return await _applicationDbContext.Users.SingleOrDefaultAsync(x => x.Email == email);
+            return await _applicationDbContext.Users.SingleOrDefaultAsync(x => x.Email.Equals(email));
         }
 
-        public Task<User> GetById(Guid id)
+        public async Task<User> GetById(Guid id)
         {
-            throw new NotImplementedException();
+            return await _applicationDbContext.Users.SingleOrDefaultAsync(x => x.Id.Equals(id));
         }
 
         public async Task<bool> IsEmailUsed(string email)

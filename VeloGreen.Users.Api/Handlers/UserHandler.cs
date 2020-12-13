@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using VeloGreen.Users.Api.Entities;
+using VeloGreen.Users.Api.Exceptions;
 using VeloGreen.Users.Api.Storage;
 
 namespace VeloGreen.Users.Api.Handlers
@@ -38,6 +39,29 @@ namespace VeloGreen.Users.Api.Handlers
             await _userRepository.Save(user);
         }
 
+        public async Task Update(UpdateUserRequest updateUserRequest)
+        {
+            var user = await _userRepository.GetById(updateUserRequest.Id);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException($"User with id {updateUserRequest.Id} could not be found");
+            }
+
+            user.Id = updateUserRequest.Id;
+            user.FirstName = updateUserRequest.FirstName;
+            user.LastName = updateUserRequest.LastName;
+
+            if (!string.IsNullOrWhiteSpace(updateUserRequest.CurrentPassword) && 
+                !string.IsNullOrWhiteSpace(updateUserRequest.NewPassword) && 
+                BCrypt.Net.BCrypt.Verify(user.Password, updateUserRequest.CurrentPassword))
+            {
+                user.Password = BCrypt.Net.BCrypt.HashPassword(updateUserRequest.NewPassword);
+            }
+
+            await _userRepository.Save(user);
+        }
+
         public async Task<string> Authenticate(AuthenticationRequest authenticationRequest)
         {
             var user = await _userRepository.GetByEmail(authenticationRequest.Email);
@@ -47,18 +71,29 @@ namespace VeloGreen.Users.Api.Handlers
                 throw new AuthenticationException();
             }
 
-            return GenerateJwtToken(user.Id);
+            return GenerateJwtToken(user);
         }
 
-        private static string GenerateJwtToken(Guid userId)
+        public Task<User> GetUserByEmail(string email)
         {
-            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Replace with key from settings"));
+            return _userRepository.GetByEmail(email);
+        }
+
+        private static string GenerateJwtToken(User user)
+        {
+            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Replace with key from settings that is long and 256"));
             var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha384Signature);
             var securityTokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim(JwtRegisteredClaimNames.NameId, userId.ToString()) }),
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                    new Claim("Admin", false.ToString())
+                }),
                 Expires = DateTime.UtcNow.AddMonths(1),
                 SigningCredentials = signingCredentials,
+                Issuer = "https://velogreen.se",
             };
 
             var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
