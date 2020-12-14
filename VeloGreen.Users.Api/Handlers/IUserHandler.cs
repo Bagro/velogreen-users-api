@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using VeloGreen.Users.Api.Entities;
 
@@ -9,6 +10,6 @@ namespace VeloGreen.Users.Api.Handlers
 
         Task Update(UpdateUserRequest updateUserRequest);
         
-        Task<User> GetUserByEmail(string email);
+        Task<User> GetUserById(Guid id);
     }
 }

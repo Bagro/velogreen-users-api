@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -37,11 +38,11 @@ namespace VeloGreen.Users.Api.Controllers
             return NoContent();
         }
 
-        [HttpGet("{email}")]
+        [HttpGet("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> GetUserByEmail(string email)
+        public async Task<IActionResult> GetUserByEmail(Guid id)
         {
-            return Ok(await _userHandler.GetUserByEmail(email));
+            return Ok(await _userHandler.GetUserById(id));
         }
     }
 }
