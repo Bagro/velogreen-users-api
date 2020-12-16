@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -13,6 +15,7 @@ using Microsoft.OpenApi.Models;
 using VeloGreen.Users.Api.Entities.Settings;
 using VeloGreen.Users.Api.Handlers;
 using VeloGreen.Users.Api.Storage;
+using VeloGreen.Users.Api.Verifiers;
 
 namespace VeloGreen.Users.Api
 {
@@ -62,12 +65,17 @@ namespace VeloGreen.Users.Api
                 c =>
                 {
                     c.SwaggerDoc("v1", new OpenApiInfo { Title = "VeloGreen.Users.Api", Version = "v1" });
+                    
+                    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                    c.IncludeXmlComments(xmlPath);
                 });
 
             services.AddHttpContextAccessor();
 
             services.AddOptions<AuthenticationSettings>().BindConfiguration(nameof(AuthenticationSettings));
 
+            services.AddScoped<IAccessVerifier, AccessVerifier>();
             services.AddScoped<IAuthenticationHandler, AuthenticationHandler>();
             services.AddScoped<IUserHandler, UserHandler>();
             services.AddScoped<IUserRepository, UserRepository>();

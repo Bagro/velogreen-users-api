@@ -1,24 +1,23 @@
 using System;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using VeloGreen.Users.Api.Constants;
 using VeloGreen.Users.Api.Entities;
 using VeloGreen.Users.Api.Exceptions;
 using VeloGreen.Users.Api.Storage;
+using VeloGreen.Users.Api.Verifiers;
 
 namespace VeloGreen.Users.Api.Handlers
 {
     public class UserHandler : IUserHandler
     {
         private readonly IUserRepository _userRepository;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IAccessVerifier _accessVerifier;
 
-        public UserHandler(IUserRepository userRepository, IHttpContextAccessor httpContextAccessor)
+        public UserHandler(IUserRepository userRepository, IAccessVerifier accessVerifier)
         {
             _userRepository = userRepository;
-            _httpContextAccessor = httpContextAccessor;
+            _accessVerifier = accessVerifier;
         }
 
         public async Task Register(RegisterRequest registerRequest)
@@ -41,11 +40,11 @@ namespace VeloGreen.Users.Api.Handlers
 
         public async Task Update(UpdateUserRequest updateUserRequest)
         {
-            if (!CanAccess(ClaimConstants.NameIdentifier, updateUserRequest.Id.ToString()) && !CanAccess(ClaimConstants.Admin, true.ToString()))
+            if (!_accessVerifier.HaveAccess(ClaimConstants.NameIdentifier, updateUserRequest.Id.ToString()) && !_accessVerifier.HaveAccess(ClaimConstants.Admin, true.ToString()))
             {
                 throw new UnauthorizedAccessException();
             }
-            
+
             var user = await _userRepository.GetById(updateUserRequest.Id);
 
             if (user == null)
@@ -57,9 +56,9 @@ namespace VeloGreen.Users.Api.Handlers
             user.FirstName = updateUserRequest.FirstName;
             user.LastName = updateUserRequest.LastName;
 
-            if (!string.IsNullOrWhiteSpace(updateUserRequest.CurrentPassword) && 
-                !string.IsNullOrWhiteSpace(updateUserRequest.NewPassword) && 
-                BCrypt.Net.BCrypt.Verify(user.Password, updateUserRequest.CurrentPassword))
+            if (!string.IsNullOrWhiteSpace(updateUserRequest.CurrentPassword) &&
+                !string.IsNullOrWhiteSpace(updateUserRequest.NewPassword) &&
+                BCrypt.Net.BCrypt.Verify(updateUserRequest.CurrentPassword, user.Password))
             {
                 user.Password = BCrypt.Net.BCrypt.HashPassword(updateUserRequest.NewPassword);
             }
@@ -67,20 +66,23 @@ namespace VeloGreen.Users.Api.Handlers
             await _userRepository.Save(user);
         }
 
-        public async Task<User> GetUserByEmail(string email)
+        public async Task<User> GetUserById(Guid id)
         {
-            if (CanAccess(ClaimConstants.Email, email) || CanAccess(ClaimConstants.Admin, true.ToString()))
+            if (_accessVerifier.HaveAccess(ClaimConstants.NameIdentifier, id.ToString()) || _accessVerifier.HaveAccess(ClaimConstants.Admin, true.ToString()))
             {
-                return await _userRepository.GetByEmail(email);
+                var user = await _userRepository.GetById(id);
+
+                if (user == null)
+                {
+                    throw new UserNotFoundException($"User with id {id} could not be found");
+                }
+
+                user.Password = string.Empty;
+
+                return user;
             }
 
             throw new UnauthorizedAccessException();
         }
-
-        private bool CanAccess(string type, string value)
-        {
-            return _httpContextAccessor.HttpContext != null && _httpContextAccessor.HttpContext.User.Claims.Any(x => x.Type.Equals(type) && x.Value.Equals(value));
-        }
-        
     }
 }
