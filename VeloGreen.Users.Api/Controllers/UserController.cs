@@ -1,16 +1,18 @@
 using System;
+using System.Data;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using VeloGreen.Users.Api.Entities;
+using VeloGreen.Users.Api.Exceptions;
 using VeloGreen.Users.Api.Handlers;
 
 namespace VeloGreen.Users.Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("v1/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly IUserHandler _userHandler;
@@ -20,29 +22,70 @@ namespace VeloGreen.Users.Api.Controllers
             _userHandler = userHandler;
         }
 
+        /// <summary>
+        /// Register new user
+        /// </summary>
+        /// <param name="registerRequest"></param>
+        /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
         {
-            await _userHandler.Register(registerRequest);
+            try
+            {
+                await _userHandler.Register(registerRequest);
+            }
+            catch (DuplicateNameException)
+            {
+                return BadRequest();
+            }
 
             return NoContent();
         }
 
         [HttpPut]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Update([FromBody] UpdateUserRequest updateUserRequest)
         {
-            await _userHandler.Update(updateUserRequest);
+            try
+            {
+                await _userHandler.Update(updateUserRequest);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (UserNotFoundException)
+            {
+                return NotFound();
+            }
 
             return NoContent();
         }
 
         [HttpGet("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetUserByEmail(Guid id)
         {
-            return Ok(await _userHandler.GetUserById(id));
+            try
+            {
+                return Ok(await _userHandler.GetUserById(id));
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (UserNotFoundException)
+            {
+                return NotFound();
+            }
         }
     }
 }
