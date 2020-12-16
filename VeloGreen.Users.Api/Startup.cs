@@ -13,6 +13,7 @@ using Microsoft.OpenApi.Models;
 using VeloGreen.Users.Api.Entities.Settings;
 using VeloGreen.Users.Api.Handlers;
 using VeloGreen.Users.Api.Storage;
+using VeloGreen.Users.Api.Verifiers;
 
 namespace VeloGreen.Users.Api
 {
@@ -68,6 +69,7 @@ namespace VeloGreen.Users.Api
 
             services.AddOptions<AuthenticationSettings>().BindConfiguration(nameof(AuthenticationSettings));
 
+            services.AddScoped<IAccessVerifier, AccessVerifier>();
             services.AddScoped<IAuthenticationHandler, AuthenticationHandler>();
             services.AddScoped<IUserHandler, UserHandler>();
             services.AddScoped<IUserRepository, UserRepository>();
