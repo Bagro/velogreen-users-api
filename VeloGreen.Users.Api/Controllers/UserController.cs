@@ -44,6 +44,11 @@ namespace VeloGreen.Users.Api.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// User update
+        /// </summary>
+        /// <param name="updateUserRequest"></param>
+        /// <returns></returns>
         [HttpPut]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -67,6 +72,11 @@ namespace VeloGreen.Users.Api.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Get user information
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]

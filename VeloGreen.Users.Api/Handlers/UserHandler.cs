@@ -1,8 +1,6 @@
 using System;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using VeloGreen.Users.Api.Constants;
 using VeloGreen.Users.Api.Entities;
 using VeloGreen.Users.Api.Exceptions;
@@ -46,7 +44,7 @@ namespace VeloGreen.Users.Api.Handlers
             {
                 throw new UnauthorizedAccessException();
             }
-            
+
             var user = await _userRepository.GetById(updateUserRequest.Id);
 
             if (user == null)
@@ -58,8 +56,8 @@ namespace VeloGreen.Users.Api.Handlers
             user.FirstName = updateUserRequest.FirstName;
             user.LastName = updateUserRequest.LastName;
 
-            if (!string.IsNullOrWhiteSpace(updateUserRequest.CurrentPassword) && 
-                !string.IsNullOrWhiteSpace(updateUserRequest.NewPassword) && 
+            if (!string.IsNullOrWhiteSpace(updateUserRequest.CurrentPassword) &&
+                !string.IsNullOrWhiteSpace(updateUserRequest.NewPassword) &&
                 BCrypt.Net.BCrypt.Verify(updateUserRequest.CurrentPassword, user.Password))
             {
                 user.Password = BCrypt.Net.BCrypt.HashPassword(updateUserRequest.NewPassword);
@@ -74,7 +72,13 @@ namespace VeloGreen.Users.Api.Handlers
             {
                 var user = await _userRepository.GetById(id);
 
+                if (user == null)
+                {
+                    throw new UserNotFoundException($"User with id {id} could not be found");
+                }
+
                 user.Password = string.Empty;
+
                 return user;
             }
 
