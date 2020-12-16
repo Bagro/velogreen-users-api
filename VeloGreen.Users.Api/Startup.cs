@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -63,6 +65,10 @@ namespace VeloGreen.Users.Api
                 c =>
                 {
                     c.SwaggerDoc("v1", new OpenApiInfo { Title = "VeloGreen.Users.Api", Version = "v1" });
+                    
+                    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                    c.IncludeXmlComments(xmlPath);
                 });
 
             services.AddHttpContextAccessor();
