@@ -2,7 +2,6 @@ using System;
 using System.Data;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using NSubstitute;
 using VeloGreen.Users.Api.Entities;
 using VeloGreen.Users.Api.Exceptions;
