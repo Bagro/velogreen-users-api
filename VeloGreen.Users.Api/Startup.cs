@@ -90,9 +90,7 @@ namespace VeloGreen.Users.Api
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "VeloGreen.Users.Api v1"));
             }
-
-            app.UseHttpsRedirection();
-
+            
             app.UseRouting();
 
             app.UseAuthorization();
