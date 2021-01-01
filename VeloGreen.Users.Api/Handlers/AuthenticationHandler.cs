@@ -52,6 +52,7 @@ namespace VeloGreen.Users.Api.Handlers
                 Expires = DateTime.UtcNow.AddMonths(1),
                 SigningCredentials = signingCredentials,
                 Issuer = _authenticationSettings.Issuer,
+                Audience = _authenticationSettings.Audience,
             };
 
             var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();

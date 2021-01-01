@@ -51,8 +51,8 @@ namespace VeloGreen.Users.Api
                         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
                         {
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Replace with key from settings that is long and 256")),
-                            ValidateAudience = false,
-                            ValidateIssuer = false,
+                            ValidateAudience = true,
+                            ValidateIssuer = true,
                             ValidateLifetime = false,
                             RequireExpirationTime = false,
                             ClockSkew = TimeSpan.Zero,
